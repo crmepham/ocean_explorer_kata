@@ -1,0 +1,174 @@
+{
+  "info": {
+    "_postman_id": "b0beaaab-501b-46b2-87ef-fe9abec1c856",
+    "name": "OceanExplorerKata",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "2649095",
+    "_collection_link": "https://go.postman.co/collection/2649095-b0beaaab-501b-46b2-87ef-fe9abec1c856?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Grids",
+      "item": [
+        {
+          "name": "Create Grid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"width\": 10,\n    \"height\": 10,\n    \"obstacles\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "http://localhost:8080/grids",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["grids"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List All Grids",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/grids",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["grids"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Grid by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/grids/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["grids", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Grid",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"width\": 20,\n    \"height\": 15,\n    \"obstacles\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "http://localhost:8080/grids/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["grids", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Grid",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/grids/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["grids", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Obstacles",
+      "item": [
+        {
+          "name": "Place Obstacle",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"x\": 3,\n    \"y\": 4\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "http://localhost:8080/grids/1/obstacles",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["grids", "1", "obstacles"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Probes",
+      "item": [
+        {
+          "name": "Deploy Probe",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"x\": 0,\n    \"y\": 0,\n    \"direction\": \"NORTH\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "http://localhost:8080/grids/1/probes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["grids", "1", "probes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Probe by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/probes/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["probes", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
