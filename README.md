@@ -25,3 +25,7 @@ export DB_HOST=localhost
 export DB_PORT=3306
 ...
 ```
+
+## Using the API
+
+Import the `OceanExplorerKata.postman_collection` into Postman. Start by creating a grid!
