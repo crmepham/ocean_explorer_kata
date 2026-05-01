@@ -220,3 +220,14 @@ org.kata
 | 2026-04-30 | `BoundaryPolicy` interface (Strategy Pattern) | Boundary behaviour (block vs wrap) is swappable without touching `Probe`; initial implementation is `BlockingBoundaryPolicy` |
 | 2026-04-30 | `ObstaclePolicy` interface (Strategy Pattern) | Obstacle collision behaviour (halt vs skip) is swappable without touching `Probe`; initial implementation is `HaltingObstaclePolicy` |
 | 2026-04-30 | Java 26 + JUnit 5 (Jupiter) + AssertJ | Records for `Position2D` and `MovementVector`; sealed interface for `MoveResult`; pattern matching in switch; `@ParameterizedTest` and fluent assertions in tests |
+
+## 10. Future considerations
+- Caching long-lived data
+- Probe position updated in memory, then persisted periodically in the background
+- Security
+- Logging
+- Tracing
+- Docker containerization for simpler local deployment
+- Limits: entities that can be created, listing/pagination, race conditions (pessimistic or optimistic row locking)
+- Event driven processes
+- Visualization
