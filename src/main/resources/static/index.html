@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ocean Explorer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a1628;
+      color: #7ec8e3;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      color: #a8d8ea;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    label { color: #7ec8e3; font-size: 0.9rem; }
+
+    select {
+      background: #0d2137;
+      border: 1px solid #1e4d6b;
+      color: #a8d8ea;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .status {
+      font-size: 0.75rem;
+      color: #4a8fa8;
+      margin-left: auto;
+    }
+
+    .status.error { color: #e07070; }
+
+    .grid-container {
+      overflow: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    td {
+      width: 48px;
+      height: 48px;
+      border: 1px solid #1e3d55;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 1.3rem;
+      position: relative;
+      background: #0d2137;
+      transition: background 0.15s;
+    }
+
+    td.obstacle {
+      background: #1a0d1a;
+      color: #c0305a;
+    }
+
+    td.probe {
+      background: #0d2a1a;
+      color: #40d080;
+    }
+
+    td.probe.obstacle {
+      background: #2a0d0d;
+      color: #ff6060;
+    }
+
+    .coord-label {
+      font-size: 0.55rem;
+      position: absolute;
+      bottom: 2px;
+      right: 3px;
+      color: #2a4a5a;
+      line-height: 1;
+    }
+
+    .row-header, .col-header {
+      width: 28px;
+      height: 48px;
+      font-size: 0.65rem;
+      color: #2a5a7a;
+      text-align: center;
+      vertical-align: middle;
+      background: transparent;
+      border: none;
+    }
+
+    .col-header { height: 20px; }
+
+    .legend {
+      margin-top: 20px;
+      display: flex;
+      gap: 20px;
+      font-size: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+
+    .legend-swatch {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #1e3d55;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .probe-info {
+      margin-top: 20px;
+      font-size: 0.8rem;
+      color: #5aa8c0;
+    }
+
+    .probe-info table {
+      margin-top: 8px;
+      border-collapse: collapse;
+      width: auto;
+    }
+
+    .probe-info td, .probe-info th {
+      width: auto;
+      height: auto;
+      border: 1px solid #1e3d55;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      background: #0d2137;
+      color: #7ec8e3;
+    }
+
+    .probe-info th {
+      color: #4a8fa8;
+      font-weight: normal;
+    }
+
+    #no-grids {
+      color: #4a6a7a;
+      font-size: 0.9rem;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>&#x1F30A; Ocean Explorer</h1>
+
+  <div class="controls">
+    <label for="grid-select">Grid:</label>
+    <select id="grid-select">
+      <option value="">— select a grid —</option>
+    </select>
+    <span class="status" id="status">Connecting...</span>
+  </div>
+
+  <div id="no-grids" style="display:none">No grids found. Create one via the API.</div>
+  <div class="grid-container" id="grid-container"></div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#0d2137;color:#2a4a5a">·</div>
+      <span>Empty</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#1a0d1a;color:#c0305a">&#x2715;</div>
+      <span>Obstacle</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#0d2a1a;color:#40d080">&#x25B2;</div>
+      <span>Probe</span>
+    </div>
+  </div>
+
+  <div class="probe-info" id="probe-info"></div>
+
+  <script>
+    const DIRECTION_ARROWS = {
+      NORTH:     '↑',
+      NORTHEAST: '↗',
+      EAST:      '→',
+      SOUTHEAST: '↘',
+      SOUTH:     '↓',
+      SOUTHWEST: '↙',
+      WEST:      '←',
+      NORTHWEST: '↖',
+    };
+
+    const gridSelect = document.getElementById('grid-select');
+    const gridContainer = document.getElementById('grid-container');
+    const statusEl = document.getElementById('status');
+    const noGridsEl = document.getElementById('no-grids');
+    const probeInfoEl = document.getElementById('probe-info');
+
+    let selectedGridId = null;
+    let pollTimer = null;
+
+    function setStatus(text, isError = false) {
+      statusEl.textContent = text;
+      statusEl.className = 'status' + (isError ? ' error' : '');
+    }
+
+    async function loadGridList() {
+      try {
+        const res = await fetch('/grids');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const grids = await res.json();
+
+        const currentVal = gridSelect.value;
+        gridSelect.innerHTML = '<option value="">— select a grid —</option>';
+        grids.forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = g.id;
+          opt.textContent = `Grid ${g.id}  (${g.width} × ${g.height})`;
+          if (String(g.id) === currentVal) opt.selected = true;
+          gridSelect.appendChild(opt);
+        });
+
+        noGridsEl.style.display = grids.length === 0 ? 'block' : 'none';
+
+        // Auto-select first grid if none selected
+        if (!selectedGridId && grids.length > 0) {
+          gridSelect.value = grids[0].id;
+          selectedGridId = String(grids[0].id);
+        }
+      } catch (e) {
+        setStatus('Failed to load grids', true);
+      }
+    }
+
+    async function pollState() {
+      if (!selectedGridId) {
+        setStatus('No grid selected');
+        gridContainer.innerHTML = '';
+        probeInfoEl.innerHTML = '';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/grids/${selectedGridId}/state`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const state = await res.json();
+        renderGrid(state);
+        setStatus(`Updated ${new Date().toLocaleTimeString()}`);
+      } catch (e) {
+        setStatus(`Error: ${e.message}`, true);
+      }
+    }
+
+    function renderGrid(state) {
+      const { width, height, obstacles, probes } = state;
+
+      // Build lookup sets
+      const obstacleSet = new Set(obstacles.map(o => `${o.x},${o.y}`));
+      const probeMap = new Map();
+      probes.forEach(p => probeMap.set(`${p.position.x},${p.position.y}`, p));
+
+      const table = document.createElement('table');
+
+      // Column headers (x axis)
+      const headerRow = document.createElement('tr');
+      const cornerCell = document.createElement('td');
+      cornerCell.className = 'col-header';
+      headerRow.appendChild(cornerCell);
+      for (let x = 0; x < width; x++) {
+        const th = document.createElement('td');
+        th.className = 'col-header';
+        th.textContent = x;
+        headerRow.appendChild(th);
+      }
+      table.appendChild(headerRow);
+
+      // Rows: y decreasing (top row = highest y)
+      for (let y = height - 1; y >= 0; y--) {
+        const tr = document.createElement('tr');
+
+        const rowLabel = document.createElement('td');
+        rowLabel.className = 'row-header';
+        rowLabel.textContent = y;
+        tr.appendChild(rowLabel);
+
+        for (let x = 0; x < width; x++) {
+          const key = `${x},${y}`;
+          const td = document.createElement('td');
+
+          const isObstacle = obstacleSet.has(key);
+          const probe = probeMap.get(key);
+
+          if (probe) {
+            td.classList.add('probe');
+            td.textContent = DIRECTION_ARROWS[probe.direction] ?? '?';
+            td.title = `Probe #${probe.id} | ${probe.direction}`;
+          } else if (isObstacle) {
+            td.classList.add('obstacle');
+            td.textContent = '✕';
+            td.title = `Obstacle at (${x}, ${y})`;
+          } else {
+            td.textContent = '';
+            td.title = `(${x}, ${y})`;
+          }
+
+          const coordLabel = document.createElement('span');
+          coordLabel.className = 'coord-label';
+          coordLabel.textContent = `${x},${y}`;
+          td.appendChild(coordLabel);
+
+          tr.appendChild(td);
+        }
+
+        table.appendChild(tr);
+      }
+
+      gridContainer.innerHTML = '';
+      gridContainer.appendChild(table);
+
+      // Probe info table
+      if (probes.length > 0) {
+        let html = '<strong>Probes</strong><table><tr><th>ID</th><th>X</th><th>Y</th><th>Direction</th></tr>';
+        probes.forEach(p => {
+          html += `<tr><td>#${p.id}</td><td>${p.position.x}</td><td>${p.position.y}</td><td>${DIRECTION_ARROWS[p.direction] ?? ''} ${p.direction}</td></tr>`;
+        });
+        html += '</table>';
+        probeInfoEl.innerHTML = html;
+      } else {
+        probeInfoEl.innerHTML = '';
+      }
+    }
+
+    gridSelect.addEventListener('change', () => {
+      selectedGridId = gridSelect.value || null;
+      pollState();
+    });
+
+    async function tick() {
+      await loadGridList();
+      await pollState();
+    }
+
+    tick();
+    setInterval(tick, 500);
+  </script>
+</body>
+</html>

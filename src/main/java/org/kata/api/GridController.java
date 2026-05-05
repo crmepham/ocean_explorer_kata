@@ -3,6 +3,7 @@ package org.kata.api;
 import org.kata.service.grid.GridRequest;
 import org.kata.service.grid.GridResponse;
 import org.kata.service.grid.GridService;
+import org.kata.service.grid.GridStateResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,6 +43,11 @@ public class GridController {
     @GetMapping("/{id}")
     public ResponseEntity<GridResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(gridService.findById(id));
+    }
+
+    @GetMapping("/{id}/state")
+    public ResponseEntity<GridStateResponse> getState(@PathVariable Long id) {
+        return ResponseEntity.ok(gridService.getState(id));
     }
 
     @PutMapping("/{id}")

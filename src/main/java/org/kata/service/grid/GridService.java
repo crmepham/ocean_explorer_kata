@@ -13,4 +13,6 @@ public interface GridService {
     GridResponse update(Long id, GridRequest request);
 
     void delete(Long id);
+
+    GridStateResponse getState(Long id);
 }
