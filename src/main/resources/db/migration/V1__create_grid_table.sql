@@ -1,5 +1,5 @@
 CREATE TABLE grid (
-    id     BIGINT       NOT NULL AUTO_INCREMENT,
+    id     BIGINT       GENERATED ALWAYS AS IDENTITY,
     width  INT          NOT NULL,
     height INT          NOT NULL,
     PRIMARY KEY (id)

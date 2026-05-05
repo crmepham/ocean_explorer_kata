@@ -1,5 +1,5 @@
 CREATE TABLE obstacle (
-    id      BIGINT NOT NULL AUTO_INCREMENT,
+    id      BIGINT GENERATED ALWAYS AS IDENTITY,
     grid_id BIGINT NOT NULL,
     x       INT    NOT NULL,
     y       INT    NOT NULL,
